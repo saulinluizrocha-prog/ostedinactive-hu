@@ -51,6 +51,40 @@
     }
     header img.logo { height: 48px; }
 
+    /* ── Hungarian flag ── */
+    .hu-flag {
+      width: 64px;
+      height: 42px;
+      border-radius: 5px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,.18);
+      display: inline-flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    .hu-flag span {
+      flex: 1;
+      display: block;
+    }
+    .hu-flag .s1 { background: #CE2939; }
+    .hu-flag .s2 { background: #FFFFFF; }
+    .hu-flag .s3 { background: #477050; }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header-brand-name {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--gray-900);
+      letter-spacing: -.5px;
+    }
+    .header-brand-name span {
+      color: var(--green);
+    }
+
     /* ── HERO CHECK ── */
     .hero {
       text-align: center;
@@ -383,7 +417,14 @@
 
 <!-- HEADER -->
 <header>
-  <img class="logo" src="img/logo.png" alt="Ostedin Magyarország">
+  <div class="header-brand">
+    <div class="hu-flag">
+      <span class="s1"></span>
+      <span class="s2"></span>
+      <span class="s3"></span>
+    </div>
+    <div class="header-brand-name">Ostedin <span>Magyarország</span></div>
+  </div>
 </header>
 
 <!-- HERO -->
