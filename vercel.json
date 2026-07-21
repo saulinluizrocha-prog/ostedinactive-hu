@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "functions": {
+    "api/index.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "rewrites": [
+    { "source": "/api.php", "destination": "/api/index.js" },
+    { "source": "/api.php/(.*)", "destination": "/api/index.js" }
+  ]
+}
