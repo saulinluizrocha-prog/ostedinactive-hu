@@ -5,9 +5,10 @@ const url = require('url');
 
 const CONFIG = {
   api_key: 'c66289394c2a6e8515c8e8b382fba719',
-  offer_id: '12277',
-  user_id: '75329',
+  offer_id: 12278,
+  user_id: 75329,
   api_domain: 'https://t-api.org',
+  stream_id: '409410',
 };
 
 function checkSum(jsonData) {
@@ -60,7 +61,7 @@ function makeRequest(payload, model, method) {
 
     req.on('error', (e) => reject(e));
     req.setTimeout(30000, () => {
-      req.abort();
+      req.destroy();
       reject(new Error('Request timeout'));
     });
 
@@ -75,7 +76,6 @@ function parseBody(req) {
     req.on('data', (chunk) => (body += chunk));
     req.on('end', () => {
       try {
-        // Try JSON first
         if (req.headers['content-type'] && req.headers['content-type'].includes('application/json')) {
           resolve(JSON.parse(body));
         } else {
@@ -91,6 +91,16 @@ function parseBody(req) {
     });
     req.on('error', reject);
   });
+}
+
+function getClientIp(req) {
+  const cfIp = req.headers['cf-connecting-ip'];
+  if (cfIp) return cfIp;
+  const clientIp = req.headers['x-client-ip'] || req.headers['http-client-ip'];
+  if (clientIp) return clientIp;
+  const forwarded = req.headers['x-forwarded-for'];
+  if (forwarded) return forwarded.split(',')[0].trim();
+  return req.socket && req.socket.remoteAddress;
 }
 
 module.exports = async (req, res) => {
@@ -117,23 +127,27 @@ module.exports = async (req, res) => {
     return;
   }
 
-  const referer = query.referer || req.headers['referer'] || null;
+  const ip = getClientIp(req);
+  const userAgent = req.headers['user-agent'] || null;
+  const referer = req.headers['referer'] || null;
 
   const leadData = {
     name: (postData.name || '').trim(),
     phone: (postData.phone || '').trim(),
     offer_id: CONFIG.offer_id,
-    country: (postData.country || 'RO').trim(),
+    country: 'HU',
+    tz: 2,
+    stream_id: CONFIG.stream_id,
     region: postData.region || null,
     city: postData.city || null,
     count: postData.count || null,
-    stream_id: '',
-    tz: '',
     address: postData.address || null,
     email: postData.email || null,
     zip: postData.zip || null,
     user_comment: postData.user_comment || null,
     referer: referer,
+    user_agent: userAgent,
+    ip: ip,
     utm_source: query.utm_source || null,
     utm_medium: query.utm_medium || null,
     utm_campaign: query.utm_campaign || null,
@@ -146,14 +160,13 @@ module.exports = async (req, res) => {
     sub_id_4: query.sub_id_4 || null,
   };
 
-  // Remove null values
+  // Remove null/empty values
   Object.keys(leadData).forEach((k) => {
     if (leadData[k] === null || leadData[k] === '') delete leadData[k];
   });
 
   try {
     const lead = await makeRequest(leadData, 'lead', 'create');
-    // Redirect to success page
     const successUrl = `/success.html?id=${lead.id}`;
     res.setHeader('Location', successUrl);
     res.status(302).end();
